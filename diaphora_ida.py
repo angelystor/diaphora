@@ -1432,7 +1432,7 @@ class CIDABinDiff(diaphora.CBinDiff):
 
       # naming convention is z_xxxx_sub_ADDRESS
       # if name ends with sub_ADDRESS, drop that part and append the new one in
-      # if the ea1's name already ends with _sub_ADDRESS, then do nothing
+      # if ea1's name already ends with _sub_ADDRESS, then do nothing
 
       ea1 = int(ea1)
 
@@ -1441,13 +1441,15 @@ class CIDABinDiff(diaphora.CBinDiff):
         ends_with = re.search(r'_sub_[A-F0-9]+$', name)      
         if ends_with:
           name = name[0:ends_with.span()[0]] + f"_{get_name(ea1)}"
-          log(f"Replacing {get_name(ea1)} --> {name}")
 
-      if not name.startswith("sub_") or force:
-        if not set_name(ea1, name, SN_NOWARN|SN_NOCHECK):
-          for i in range(10):
-            if set_name(ea1, "%s_%d" % (name, i), SN_NOWARN|SN_NOCHECK):
-              break
+      # if ea1's name is not sub_xxxx, don't replace
+      if not get_name(ea1).startsWith("sub_"):
+        if not name.startswith("sub_") or force:
+          log(f"Replacing {get_name(ea1)} --> {name}")
+          if not set_name(ea1, name, SN_NOWARN|SN_NOCHECK):
+            for i in range(10):
+              if set_name(ea1, "%s_%d" % (name, i), SN_NOWARN|SN_NOCHECK):
+                break
 
       if proto is not None and proto != "int()":
         SetType(ea1, proto)
