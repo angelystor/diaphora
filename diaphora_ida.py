@@ -16,6 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import re
 import os
 import sys
 import imp
@@ -1429,7 +1430,15 @@ class CIDABinDiff(diaphora.CBinDiff):
       name = row["mangled_function"]
       flags = row["function_flags"]
 
+      # naming convention is z_xxxx_sub_ADDRESS
+      # if name ends with sub_ADDRESS, drop that part and append the new one in
+
       ea1 = int(ea1)
+      ends_with = re.search(r'_sub_[A-F0-9]+$', name)      
+      if ends_with:
+        name = name[0:ends_with.span()[0]] + f"_{get_name(ea1)}"
+        log(f"Replacing {get_name(ea1)} --> {name}")
+
       if not name.startswith("sub_") or force:
         if not set_name(ea1, name, SN_NOWARN|SN_NOCHECK):
           for i in range(10):
